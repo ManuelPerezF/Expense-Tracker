@@ -24,4 +24,14 @@ export class UserHandler {
             res.status(500).json({ error: "Internal server error" });
         }
     }
+
+    async loginUser(req: Request, res: Response): Promise<void> {
+        try {
+            const { username, password } = req.body;
+            
+            
+        } catch (error) {
+            res.status(500).json({ error: "Internal server error" });
+        }
+    }
 }

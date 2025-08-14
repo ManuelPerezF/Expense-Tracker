@@ -10,5 +10,9 @@ export class UserController {
     async createUser(user: User): Promise<User> {
         return await this.dbService.createUser(user);
     }
+
+    async loginUser(user: User): Promise<User | null> {
+        return await this.dbService.loginUser(user);
+    }
     
 }

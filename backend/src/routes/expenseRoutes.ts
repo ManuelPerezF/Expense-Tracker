@@ -8,7 +8,6 @@ import { CategoryController } from '../controllers/categoryController';
 import { sqliteService } from '../database/services/sqliteService';
 
 
-
 const router = express.Router();
 
 const dbService = new sqliteService();

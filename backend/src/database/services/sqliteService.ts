@@ -26,6 +26,15 @@ export class sqliteService implements IDBService {
         return newUser as User;
     }
 
+    async loginUser(user: User): Promise<User | null> {
+        const db = await getDatabase();
+        const existingUser = await db.get(
+            `SELECT * FROM users WHERE username = ? AND password = ?`,
+            [user.username, user.password]
+        );
+        return existingUser as User | null;
+    }
+
     async createCategory(category: CreateCategoryRequest): Promise<Category> {
         const db = await getDatabase();
         const result = await db.run(

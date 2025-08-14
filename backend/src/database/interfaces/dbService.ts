@@ -12,6 +12,7 @@ import {
 export interface IDBService {
   // User operations
   createUser(user: User): Promise<User>;
+  loginUser(user: User): Promise<User | null>;
 
 
   // Category operations

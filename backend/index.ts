@@ -8,13 +8,20 @@ const PORT =  3000;
 
 app.use(cors());
 app.use(express.json());
+
+
+app.get('/test', (req, res) => {
+    res.json({ message: 'Server is working' });
+});
+
 app.use('/api', expenseRoutes)
+
 
 async function startServer(){
     try {
         await initializeDatabase();
         console.log('Database initialized successfully');
-        app.listen(PORT, () => console.log(`RUNNING ON https://localhost:${PORT}`));
+        app.listen(PORT, () => console.log(`RUNNING ON http://localhost:${PORT}`));
     } catch (error) {
         console.error('Error initializing database:', error);
     }
