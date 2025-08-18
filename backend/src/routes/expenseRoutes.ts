@@ -21,6 +21,7 @@ const categoryHandler = new CategoryHandler(categoryController);
 
 // User routes
 router.post('/users', userHandler.createUser.bind(userHandler));
+router.post('/login', userHandler.loginUser.bind(userHandler));
 
 // Expense routes
 router.post('/expenses', expenseHandler.createMovement.bind(expenseHandler));
