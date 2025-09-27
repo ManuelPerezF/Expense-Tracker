@@ -59,4 +59,34 @@ export class ExpenseHandler {
             res.status(500).json({ error: "Internal server error" });
         }
     }
+
+    async getMovementsByUserId(req: Request, res: Response): Promise<void> {
+        try {
+            const { userId } = req.params;
+            const movements = await this.expenseController.getMovementsByUserId(Number(userId));
+            res.status(200).json(movements);
+        } catch (error) {
+            res.status(500).json({ error: "Internal server error" });
+        }
+    }
+
+    async getFinancialSummary(req: Request, res: Response): Promise<void> {
+        try {
+            const { userId } = req.params;
+            const summary = await this.expenseController.getFinancialSummary(Number(userId));
+            res.status(200).json(summary);
+        } catch (error) {
+            res.status(500).json({ error: "Internal server error" });
+        }
+    }
+    
+    async getCategoryStats(req: Request, res: Response): Promise<void> {
+        try {
+            const { userId } = req.params;
+            const stats = await this.expenseController.getCategoryStats(Number(userId));
+            res.status(200).json(stats);
+        } catch (error) {
+            res.status(500).json({ error: "Internal server error" });
+        }
+    }
 }

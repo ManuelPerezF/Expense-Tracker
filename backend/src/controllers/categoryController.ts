@@ -16,6 +16,14 @@ export class CategoryController {
         return this.dbService.getCategoryById(id);
     }
 
+    async getCategoriesByUserId(userId: number): Promise<Category[]> {
+        return this.dbService.getCategoriesByUserId(userId);
+    }
+
+    async getCategoriesByUserIdAndType(userId: number, type: 'income' | 'expense'): Promise<Category[]> {
+        return this.dbService.getCategoriesByUserIdAndType(userId, type);
+    }
+
     async updateCategory(id: number, category: Partial<Category>): Promise<Category | null> {
         return this.dbService.updateCategory(id, category);
     }

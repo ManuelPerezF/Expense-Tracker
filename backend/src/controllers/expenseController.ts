@@ -17,4 +17,16 @@ export class ExpenseController {
     async deleteMovement(id: number): Promise<boolean> {
         return this.dbService.deleteMovement(id);
     }
+
+    async getMovementsByUserId(userId: number): Promise<Movement[]> {
+        return this.dbService.getMovementsByUserId(userId);
+    }
+
+    async getFinancialSummary(userId: number): Promise<FinancialSummary> {
+        return this.dbService.getFinancialSummary(userId);
+    }
+
+    async getCategoryStats(userId: number): Promise<CategoryStats[]> {
+        return this.dbService.getCategoryStats(userId);
+    }
 }

@@ -4,7 +4,7 @@ import { initializeDatabase, closeDatabase } from './src/database/models/sqlite'
 import expenseRoutes from './src/routes/expenseRoutes';
 
 const app = express();
-const PORT =  3000;
+const PORT = 4000;
 
 app.use(cors());
 app.use(express.json());

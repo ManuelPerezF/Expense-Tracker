@@ -43,17 +43,29 @@ async function createTables() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       emoji TEXT DEFAULT '📁',
+      type TEXT NOT NULL CHECK (type IN ('income', 'expense')) DEFAULT 'expense',
       user_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
     )
   `);
 
+  // Verificar si la columna type existe, si no, agregarla
+  const tableInfo = await db.all("PRAGMA table_info(categories)");
+  const hasTypeColumn = tableInfo.some((column: any) => column.name === 'type');
+  
+  if (!hasTypeColumn) {
+    await db.exec(`
+      ALTER TABLE categories 
+      ADD COLUMN type TEXT NOT NULL CHECK (type IN ('income', 'expense')) DEFAULT 'expense'
+    `);
+  }
+
   // Tabla de movimientos (gastos/ingresos) simplificada
   await db.exec(`
     CREATE TABLE IF NOT EXISTS movements (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      amount REAL NOT NULL,
+      amount INTEGER NOT NULL,
       type TEXT NOT NULL CHECK (type IN ('gasto', 'entrada')),
       category_id INTEGER NOT NULL,
       user_id INTEGER NOT NULL,
@@ -64,17 +76,104 @@ async function createTables() {
     )
   `);
 
-  // Insertar categorías por defecto para gastos
-  await db.exec(`
-    INSERT OR IGNORE INTO categories (id, name, emoji, user_id) VALUES 
-    (1, 'Alimentación', '🍔', 1),
-    (2, 'Transporte', '🚗', 1),
-    (3, 'Entretenimiento', '🎮', 1),
-    (4, 'Salud', '💊', 1),
-    (5, 'Educación', '📚', 1),
-    (6, 'Ropa', '👗', 1),
-    (7, 'Salario', '💰', 1)
+  // Migración: convertir amounts existentes de REAL a INTEGER
+  try {
+    const tableInfo = await db.all("PRAGMA table_info(movements)");
+    const amountColumn = tableInfo.find((column: any) => column.name === 'amount');
+    
+    if (amountColumn && amountColumn.type === 'REAL') {
+      // Crear tabla temporal con el nuevo esquema
+      await db.exec(`
+        CREATE TABLE movements_temp (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          amount INTEGER NOT NULL,
+          type TEXT NOT NULL CHECK (type IN ('gasto', 'entrada')),
+          category_id INTEGER NOT NULL,
+          user_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      // Copiar datos convirtiendo amounts a enteros
+      await db.exec(`
+        INSERT INTO movements_temp (id, amount, type, category_id, user_id, date, created_at)
+        SELECT id, ROUND(amount), type, category_id, user_id, date, created_at FROM movements
+      `);
+      
+      // Eliminar tabla original y renombrar la temporal
+      await db.exec(`DROP TABLE movements`);
+      await db.exec(`ALTER TABLE movements_temp RENAME TO movements`);
+    }
+  } catch (error) {
+    console.log('Migration for amount type already completed or not needed');
+  }
+
+  // Inicializar categorías predeterminadas para usuarios existentes que no las tienen
+  try {
+    await initializeDefaultCategoriesForExistingUsers();
+  } catch (error) {
+    console.log('Error initializing default categories:', error);
+  }
+}
+
+// Función para crear categorías básicas para un usuario específico
+export async function createDefaultCategoriesForUser(userId: number): Promise<void> {
+  const db = await getDatabase();
+  
+  // Definir las categorías predeterminadas
+  const defaultCategories = [
+    { name: 'Salario', emoji: '💰', type: 'income' },
+    { name: 'Inversión', emoji: '📈', type: 'income' },
+    { name: 'Alimento', emoji: '🍔', type: 'expense' },
+    { name: 'Transporte', emoji: '🚗', type: 'expense' },
+    { name: 'Servicios Básicos', emoji: '⚡', type: 'expense' },
+    { name: 'Ropa', emoji: '👗', type: 'expense' },
+    { name: 'Salud', emoji: '💊', type: 'expense' }
+  ];
+  
+  // Verificar e insertar solo las categorías que no existan
+  let categoriesAdded = 0;
+  
+  for (const category of defaultCategories) {
+    // Verificar si esta categoría específica ya existe
+    const existingCategory = await db.get(
+      'SELECT id FROM categories WHERE user_id = ? AND name = ? AND type = ?', 
+      [userId, category.name, category.type]
+    );
+    
+    // Solo crear si no existe
+    if (!existingCategory) {
+      await db.run(
+        'INSERT INTO categories (name, emoji, type, user_id) VALUES (?, ?, ?, ?)',
+        [category.name, category.emoji, category.type, userId]
+      );
+      categoriesAdded++;
+    }
+  }
+  
+  console.log(`${categoriesAdded} categorías predeterminadas creadas para el usuario ${userId}`);
+}
+
+// Función para inicializar categorías para usuarios existentes que no las tienen
+export async function initializeDefaultCategoriesForExistingUsers(): Promise<void> {
+  const db = await getDatabase();
+  
+  // Obtener todos los usuarios que no tienen categorías
+  const usersWithoutCategories = await db.all(`
+    SELECT u.id, u.username 
+    FROM users u 
+    LEFT JOIN categories c ON u.id = c.user_id 
+    GROUP BY u.id, u.username 
+    HAVING COUNT(c.id) = 0
   `);
+  
+  console.log(`Encontrados ${usersWithoutCategories.length} usuarios sin categorías predeterminadas`);
+  
+  // Crear categorías predeterminadas para cada usuario que no las tenga
+  for (const user of usersWithoutCategories) {
+    await createDefaultCategoriesForUser(user.id);
+  }
 }
 
 export async function getDatabase(): Promise<

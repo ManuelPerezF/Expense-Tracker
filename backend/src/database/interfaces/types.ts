@@ -9,6 +9,7 @@ export interface Category {
     id: number;
     name: string;
     emoji: string;
+    type: 'income' | 'expense';
     user_id: number;
     created_at?: Date;
 }
@@ -35,6 +36,7 @@ export interface CreateMovementRequest {
 export interface CreateCategoryRequest {
     name: string;
     emoji: string;
+    type: 'income' | 'expense';
     user_id: number;
     created_at?: Date;
 }

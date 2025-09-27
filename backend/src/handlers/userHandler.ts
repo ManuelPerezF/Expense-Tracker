@@ -12,6 +12,7 @@ export class UserHandler {
     async createUser(req: Request, res: Response): Promise<void> {
         try {
             const { username, password } = req.body;
+            console.log('Creating user with data:', { username, password: password ? '[REDACTED]' : 'undefined' });
 
             if (!username || !password) {
                 res.status(400).json({ error: "Username and password are required" });
@@ -19,8 +20,9 @@ export class UserHandler {
             }
 
             const newUser = await this.userController.createUser({ username, password } as User);
-            res.status(201).json({ message: "User created successfully", user: { username: newUser.username } });
+            res.status(201).json(newUser);
         } catch (error) {
+            console.error('Error creating user:', error);
             res.status(500).json({ error: "Internal server error" });
         }
     }
@@ -28,6 +30,7 @@ export class UserHandler {
     async loginUser(req: Request, res: Response): Promise<void> {
         try {
             const { username, password } = req.body;    
+            console.log('Login attempt for user:', username);
             
             if (!username || !password) {
                 res.status(400).json({ error: "Username and password are required" });
@@ -39,10 +42,10 @@ export class UserHandler {
                 res.status(401).json({ error: "Invalid username or password" });
                 return;
             }
-            res.status(200).json({ message: "Login successful", username});
-
+            res.status(200).json(user);
 
         } catch (error) {
+            console.error('Error during login:', error);
             res.status(500).json({ error: "Internal server error" });
         }
     }

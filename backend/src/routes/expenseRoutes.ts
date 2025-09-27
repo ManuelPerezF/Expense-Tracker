@@ -19,19 +19,31 @@ const userHandler = new UserHandler(userController);
 const categoryController = new CategoryController(dbService);
 const categoryHandler = new CategoryHandler(categoryController);
 
-// User routes
+// ==================== USER ROUTES ====================
 router.post('/users', userHandler.createUser.bind(userHandler));
-router.post('/login', userHandler.loginUser.bind(userHandler));
+router.post('/users/login', userHandler.loginUser.bind(userHandler));
 
-// Expense routes
-router.post('/expenses', expenseHandler.createMovement.bind(expenseHandler));
-router.get('/expenses/:id', expenseHandler.getMovementById.bind(expenseHandler));
-router.delete('/expenses/:id', expenseHandler.deleteMovement.bind(expenseHandler));
+// ==================== MOVEMENT ROUTES ====================
+router.post('/movements', expenseHandler.createMovement.bind(expenseHandler));
+router.get('/movements/:id', expenseHandler.getMovementById.bind(expenseHandler));
+router.delete('/movements/:id', expenseHandler.deleteMovement.bind(expenseHandler));
 
-// Category routes
+// Rutas de movimientos por usuario
+router.get('/users/:userId/movements', expenseHandler.getMovementsByUserId.bind(expenseHandler));
+
+// ==================== FINANCIAL STATS ROUTES ====================
+router.get('/users/:userId/summary', expenseHandler.getFinancialSummary.bind(expenseHandler));
+// Nueva ruta para estadísticas por categoría
+router.get('/users/:userId/category-stats', expenseHandler.getCategoryStats.bind(expenseHandler));
+
+// ==================== CATEGORY ROUTES ====================
 router.post('/categories', categoryHandler.createCategory.bind(categoryHandler));
 router.get('/categories/:id', categoryHandler.getCategoryById.bind(categoryHandler));
 router.put('/categories/:id', categoryHandler.updateCategory.bind(categoryHandler));
 router.delete('/categories/:id', categoryHandler.deleteCategory.bind(categoryHandler));
+
+// Rutas de categorías por usuario
+router.get('/users/:userId/categories', categoryHandler.getCategoriesByUserId.bind(categoryHandler));
+router.get('/users/:userId/categories/type', categoryHandler.getCategoriesByUserIdAndType.bind(categoryHandler));
 
 export default router;

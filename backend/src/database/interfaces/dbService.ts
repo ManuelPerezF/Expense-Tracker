@@ -18,6 +18,8 @@ export interface IDBService {
   // Category operations
   createCategory(category: CreateCategoryRequest): Promise<Category>;
   getCategoryById(id: number): Promise<Category | null>;
+  getCategoriesByUserId(userId: number): Promise<Category[]>;
+  getCategoriesByUserIdAndType(userId: number, type: 'income' | 'expense'): Promise<Category[]>;
   updateCategory(
     id: number,
     category: Partial<Category>
@@ -28,8 +30,11 @@ export interface IDBService {
   createMovement(movement: CreateMovementRequest): Promise<Movement>;
   getMovementById(id: number): Promise<Movement | null>;
   deleteMovement(id: number): Promise<boolean>;
+  getMovementsByUserId(userId: number): Promise<Movement[]>;
 
   // Financial summaries
   getFinancialSummary(userId: number): Promise<FinancialSummary>;
+
+
   getCategoryStats(userId: number): Promise<CategoryStats[]>;
 }
